@@ -4,13 +4,10 @@
 
 namespace sound {
 
-enum class Effect {
-    Start,
-    StartReverse,
-};
+constexpr float kKeyToneHz = 880.0f;
 
-void playSquare(float frequency, std::uint32_t durationMs, std::uint8_t volume);
-void playTriangle(float frequency, std::uint32_t durationMs, std::uint8_t volume);
-void playEffect(Effect effect, std::uint8_t volume, std::uint8_t tempoMultiplier = 1);
+void startKeyTone(std::uint8_t volume = 115);
+void stopKeyTone();
+void playAck(float frequency, std::uint32_t durationMs, std::uint8_t volume = 96);
 
 }  // namespace sound

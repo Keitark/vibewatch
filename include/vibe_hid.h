@@ -5,11 +5,12 @@
 
 namespace vibe {
 
-constexpr char kDeviceNamePrefix[] = "Vibe Watch #";
+// Keep the proven Codex Micro-compatible identity while the on-device display
+// and firmware version clearly identify this derivative as Morse Vibe.
+constexpr char kDeviceName[] = "Vibe Watch #1";
 constexpr char kManufacturer[] = "VibeWatch";
 constexpr char kModelNumber[] = "VibeWatch";
-// Compatibility version used by the reference firmware.
-constexpr char kFirmwareVersion[] = "v1.0";
+constexpr char kFirmwareVersion[] = "morse-v1.0";
 
 constexpr std::uint16_t kVendorId = 0x303A;
 constexpr std::uint16_t kProductId = 0x8360;

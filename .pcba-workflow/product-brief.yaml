@@ -1,0 +1,125 @@
+schema: electronic-product-brief-v1
+project_id: morse-vibe-sticks3
+revision: feature/morse-sticks3
+status: USER_REVIEW
+purpose:
+  user_problem: "Operate selected Codex Micro/Vibewatch functions by keying or playing Morse code into a compact M5StickS3."
+  success_behavior:
+    - "Show the pending Morse pattern, decoded character, mapped command, BLE state, and battery on the 135 x 240 display."
+    - "Decode Button A keying with crisp audible sidetone feedback."
+    - "Decode coherent audible Morse tones from 600 to 1000 Hz in microphone mode."
+    - "Send only explicitly mapped characters through the compatible v.oai.hid BLE vendor report."
+    - "Interpret Button B force-commit as an explicit cut-number request when the pattern has a numeric alias."
+  prohibited_behavior:
+    - "Do not send unmapped or invalid characters."
+    - "Do not queue commands while BLE is disconnected."
+    - "Do not leave host push-to-talk asserted after timeout, disconnect, restart, or input-mode change."
+environment:
+  operating_conditions:
+    - "SPEC: M5Stack documents the StickS3 for 0 to 40 deg C operation."
+    - "ASSUMPTION: indoor, dry, handheld prototype use."
+  lifetime_target: "Unknown; owner=user; required before productization."
+functions:
+  - "Button straight-key Morse input with adaptive 50 to 300 ms time unit."
+  - "Microphone Morse input with one-second ambient calibration."
+  - "Alphabet and standard numeral display decoding."
+  - "Explicit amateur-radio cut-number alternate decoding."
+  - "Vibewatch/Codex Micro BLE command dispatch."
+  - "Battery, pairing, status, and host-microphone safety indication."
+operating_states:
+  - "startup"
+  - "BLE advertising or connected"
+  - "KEY ready or keying"
+  - "MIC calibrating or listening"
+  - "decoded, sent, unmapped, invalid, or send-failed feedback"
+  - "host microphone latched with 30-second safety timeout"
+  - "boot-time bond reset"
+interfaces:
+  - name: "Button A / Button B"
+    domain: "3.3 V internal GPIO; exact electrical conditioning is inside the unmodified StickS3"
+    direction: "input"
+    protocol: "M5Unified button events"
+    rate: "human input; edge timing measured in milliseconds"
+    topology: "on-board"
+    protection: "SPEC: provided by the finished M5StickS3; not modified by this project"
+  - name: "Built-in microphone and ES8311 audio codec"
+    domain: "internal digital audio/I2C domains owned by the finished StickS3"
+    direction: "input"
+    protocol: "16 ksample/s signed PCM through M5Unified"
+    rate: "256-sample blocks"
+    topology: "on-board"
+    protection: "SPEC: finished product boundary; speaker is disabled before microphone use"
+  - name: "Built-in speaker"
+    domain: "internal audio amplifier path"
+    direction: "output"
+    protocol: "M5Unified PCM/tone output"
+    rate: "880 Hz continuous sidetone while Button A is held"
+    topology: "on-board"
+    protection: "TARGET: volume 115/255; requires acoustic verification"
+  - name: "Bluetooth Low Energy"
+    domain: "2.4 GHz radio; USB/BLE isolation is internal to ESP32-S3"
+    direction: "bidirectional"
+    protocol: "BLE HID with 63-byte vendor report 6 and JSON-RPC channel 2"
+    rate: "human command rate; 12 ms separation between paired notifications"
+    topology: "one active host connection; multiple stored bonds allowed"
+    protection: "encrypted bonding requested; live macOS and Windows acceptance remains unverified"
+  - name: "USB Type-C"
+    domain: "5 V input and native USB data"
+    direction: "power input and programming/debug"
+    protocol: "USB CDC and ESP32-S3 download mode"
+    rate: "tool-defined"
+    topology: "direct cable"
+    protection: "SPEC: provided by unmodified StickS3"
+power:
+  sources:
+    - "SPEC: internal 250 mAh battery"
+    - "SPEC: USB Type-C 5 V input"
+  rails:
+    - "SPEC: internal StickS3 rails managed by M5PM1; no external rail is added"
+  budget_by_mode:
+    - "TBD_MEASURE: KEY idle, keying with speaker, MIC listening, BLE connected, and charging current."
+mechanics:
+  envelope: "SPEC: unmodified M5StickS3, 48.0 x 24.0 x 15.0 mm, 20 g."
+  connectors_and_controls:
+    - "USB Type-C"
+    - "Button A"
+    - "Button B"
+    - "power/reset control"
+    - "built-in display, microphone, and speaker"
+  keepouts:
+    - "Do not obstruct the microphone port, speaker opening, display, antenna region, or USB connector."
+production:
+  prototype_quantity: null
+  target_quantity: null
+  assembled_cost_target: null
+  lifecycle_target: "Prototype firmware on an off-the-shelf controller; production intent unknown."
+verification:
+  - "PASS: native decoder, cut-number, mapper, and tone-detector tests."
+  - "PASS: PlatformIO m5stack-sticks3 firmware build."
+  - "PASS: physical COM3 target identified as ESP32-S3-PICO-1 with 8 MB flash/PSRAM, flashed with verified write hashes, and booted as board_M5StickS3."
+  - "PASS: post-flash serial banner reported morse-v1.0, KEY readiness, and NimBLE host synchronization."
+  - "USER_REVIEW: visually and acoustically operate the physical StickS3 controls and display."
+  - "USER_REVIEW: measure sidetone latency, acoustic clarity, microphone threshold, and power by mode."
+  - "USER_REVIEW: pair and exercise every command on macOS and Windows ChatGPT/Codex."
+unknowns:
+  - item: "Physical StickS3 audio latency and microphone response"
+    owner: "user/bench"
+    affected_stage: "prototype acceptance"
+    evidence_needed: "recorded key-to-tone timing and controlled-tone decode trials"
+  - item: "Native host acceptance on macOS and Windows"
+    owner: "user/host integration"
+    affected_stage: "prototype acceptance"
+    evidence_needed: "paired-device command matrix with host settings screenshots or logs"
+  - item: "Battery runtime"
+    owner: "user/bench"
+    affected_stage: "productization"
+    evidence_needed: "current and runtime measurements in KEY and MIC modes"
+assumptions:
+  - "The upstream Vibewatch VID, PID, descriptor, device name, and report framing remain acceptable to the supported host integration."
+  - "Audible microphone input is a coherent beeper tone, not spoken dit/dah syllables."
+  - "Automatic commit selects letters; Button B force-commit explicitly selects a cut-number alias."
+sources:
+  - "https://github.com/GOROman/vibewatch at f2520875a61fe087cb7e5b63a2a61ddcc2e79cb2"
+  - "https://docs.m5stack.com/en/core/StickS3"
+  - "https://docs.m5stack.com/en/arduino/m5sticks3/mic"
+  - "https://learn.chatgpt.com/docs/features/codex-micro"

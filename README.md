@@ -1,167 +1,117 @@
-# Vibe Watch
+# Morse Vibe
 
 **English** | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-[![Firmware build](https://github.com/GOROman/vibewatch/actions/workflows/firmware.yml/badge.svg)](https://github.com/GOROman/vibewatch/actions/workflows/firmware.yml)
+Morse Vibe turns an M5StickS3 into a two-mode Morse command controller for the
+Codex Micro/Vibewatch BLE protocol. Key commands with Button A or play an
+audible Morse tone near the built-in microphone; the display shows the live
+pattern, decoded character, mapped action, connection, and battery state.
 
-**A wearable, tactile control surface for AI-assisted Vibe Coding—built around the M5Stack StopWatch.**
+This is an MIT-licensed derivative of
+[GOROman/vibewatch](https://github.com/GOROman/vibewatch), pinned from upstream
+commit `f2520875a61fe087cb7e5b63a2a61ddcc2e79cb2`.
 
-Created for the [M5Stack Global Innovation Contest 2026](https://m5stack.com/global-innovation-contest-2026).
+## Controls
 
-![Vibe Watch worn on the wrist, showing its tactile Vibe Coding action interface](docs/images/vibe-watch-hero.jpg)
-
-## Video Demo
-
-[![Watch the Vibe Watch video demo](https://img.youtube.com/vi/Wta_rQDcs74/maxresdefault.jpg)](https://www.youtube.com/watch?v=Wta_rQDcs74)
-
-[Watch on YouTube](https://www.youtube.com/watch?v=Wta_rQDcs74)
-
-## One Glance. One Action. Stay in the Flow.
-
-Vibe Watch moves frequent AI-agent interactions away from crowded desktop UI and onto a dedicated wireless device. It keeps six agent states visible at a glance, makes approve/reject decisions physical, and puts Plan mode, assistant access, and push-to-talk on the wrist.
-
-The goal is simple: spend less attention operating the AI and more attention creating with it.
-
-## Why I Built It
-
-Running multiple AI-agent sessions in parallel has become normal in Vibe Coding. That creates a new interaction problem: I want to know the instant a task finishes, select the right session, and speak the next prompt without searching across windows or returning to the keyboard.
-
-After purchasing an [OpenAI Codex Micro](https://learn.chatgpt.com/docs/features/codex-micro), I was inspired by the idea of dedicated hardware for AI coding. I believed the experience could become even smaller, more glanceable, and more expressive by combining a round display with direct controls, motion, sound, haptics, and voice input. That idea became Vibe Watch: a wearable AI cockpit for parallel sessions.
-
-## The Experience
-
-The main **Agent layer** arranges six live agent indicators around the circular screen. Host-provided color, brightness, and animation communicate activity, while a fast spring motion moves the selection ring from one agent to the next.
-
-Pressing both hardware buttons transforms the interface into the **Action layer**:
-
-| Control | Experience |
+| Control | Behavior |
 |---|---|
-| **FAST** | Triggers a quick action |
-| **NG / OK** | Rejects or approves with distinct square-wave sounds and haptics |
-| **PLAN** | Toggles Plan mode with a visible state change |
-| **AI** | Invokes the assistant |
-| **Center microphone** | Provides hold-to-talk control |
+| Button A in KEY mode | Straight Morse key with a crisp 880 Hz ton/tsu sidetone |
+| Button A in MIC mode | Restart the one-second ambient calibration |
+| Button B single press | Force commit; choose a cut-number alias when one exists |
+| Button B double press | Clear the pending symbol |
+| Button B hold for 800 ms | Switch KEY/MIC mode |
+| Hold A+B for 3 seconds during boot | Clear BLE bonds and advertise for pairing |
 
-The orange left button maps to NG and the blue right button maps to OK. Colored rails visually join each physical button to its on-screen action, making the relationship understandable without instructions.
+Automatic three-unit gaps always use the alphabet interpretation. This keeps
+ambiguous command letters deterministic. To enter a shortened numeral, key the
+same pattern and press Button B before the automatic gap commits it.
 
-## Interface Gallery
+Examples:
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/images/vibe-watch-startup.jpg" alt="Vibe Watch animated startup screen with version and battery level"><br>
-      <strong>Purpose-built startup</strong><br>
-      A fading identity, original chiptune, and animated measured battery level.
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/images/vibe-watch-agent-layer.jpg" alt="Vibe Watch Agent layer showing six parallel AI sessions"><br>
-      <strong>Six parallel agents</strong><br>
-      Live state and selection remain visible without covering the coding workspace.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/images/vibe-watch-action-layer.jpg" alt="Vibe Watch Action layer showing FAST, NG, OK, PLAN, AI, and push-to-talk"><br>
-      <strong>Action layer</strong><br>
-      FAST, NG, OK, PLAN, AI, and push-to-talk become immediate wrist controls.
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/images/vibe-watch-settings.jpg" alt="Vibe Watch settings for Bluetooth pairing, sound, and vibration"><br>
-      <strong>On-device settings</strong><br>
-      Pairing, sound volume, vibration strength, and state-change haptics stay on the watch.
-    </td>
-  </tr>
-</table>
+- `.-` + automatic gap -> `A` -> AI
+- `.-` + Button B -> cut `1` -> Agent 1
+- `-.` + automatic gap -> `N` -> NG
+- `-.` + Button B -> cut `9` -> displayed as unmapped
 
-## Designed as One Multisensory Interface
+## Command map
 
-Vibe Watch is not a macro pad with a decorative screen. Its visual motion, audio cues, vibration, touch controls, and physical buttons all describe the same interaction state.
+| Decoded value | Host event | Intended host assignment |
+|---|---|---|
+| F | ACT06 | Fast |
+| O | ACT07 | Approve / OK |
+| N | ACT08 | Decline / NG |
+| P | ACT09 | Toggle Plan mode |
+| A | ACT12 | AI / Codex action |
+| M | ACT10 + ACT11 | Toggle push-to-talk, with 30-second safety release |
+| 1-6 | AG00-AG05 | Select agent/chat 1-6 |
 
-- A rising square-wave phrase confirms **OK**; a descending phrase confirms **NG**.
-- Pairing success is acknowledged with both sound and vibration.
-- Agent-state updates can signal silently through adjustable haptics.
-- Sound volume, vibration strength, and state-change vibration are configurable on-device and retained after restart.
+Codex Micro action slots are host-configurable. Assign ACT09 to Plan and ACT12
+to the desired AI/Codex action in the desktop app on each computer. Unmapped
+letters and numbers are displayed but never transmitted.
 
-## How the M5Stack Controller Is Used
+## Cut numbers
 
-The M5Stack StopWatch is the complete product interface—not a passive display attached to another controller.
+Button B explicitly selects these common radio abbreviations:
 
-- Its **ESP32-S3** runs the UI, preferences, battery monitoring, and Bluetooth Low Energy HID communication.
-- The **466 × 466 round touchscreen** presents the six-agent spatial interface and action controls.
-- The two **physical buttons** provide eyes-free navigation and approve/reject decisions.
-- The built-in **speaker** and **vibration motor** provide immediate, recognizable feedback.
-- The integrated **battery** makes the controller wireless and portable.
+| Number | Short pattern | Letter with the same pattern |
+|---:|---|---|
+| 0 | - | T |
+| 1 | .- | A |
+| 2 | ..- | U |
+| 3 | ...- | V |
+| 4 | ....- | standard 4 |
+| 5 | . | E |
+| 6 | -.... | standard 6 |
+| 7 | -... | B |
+| 8 | -.. | D |
+| 9 | -. | N |
 
-This tight hardware integration turns an off-the-shelf M5Stack controller into a purpose-built human–AI interface.
+## Microphone mode
 
-## From StopWatch to Wristwatch
+MIC mode listens for a coherent 600-1000 Hz beeper tone at 16 ksample/s. It
+calibrates the ambient noise floor for one second, then applies band-energy,
+concentration, threshold, and hysteresis checks. Spoken “dit” and “dah” syllables
+are not a supported input.
 
-Vibe Watch repurposes the official [Watch Accessory Kit for the M5Stick Series](https://shop.m5stack.com/products/watch-accessory-kit-for-m5stick-series) as a wrist mount. The kit is designed for rectangular M5Stick devices, so its plastic Watch Mount Accessory needs a small physical modification before it can carry the round StopWatch.
+The StickS3 microphone and speaker share the audio path, so the sidetone is
+silent in MIC mode.
 
-1. Remove the plastic mount from the device and strap before cutting.
-2. Use flush cutters or small nippers to cut away the raised M5Stick retaining hooks, removing a little material at a time.
-3. Trim any remaining burrs or sharp edges until the mount presents a flat bonding surface.
-4. Clean and completely dry both the mount and the flat rear surface of the StopWatch.
-5. Cut high-strength double-sided tape so it fits inside the mount footprint. Keep buttons, connectors, and openings clear.
-6. Center the mount on the rear of the StopWatch, press it down firmly, and allow the adhesive to reach its specified bond strength.
-7. Refit the nylon strap and perform a firm pull test before wearing it.
+## Build, test, and upload
 
-### Wrist-Mount Build Photos
-
-<table>
-  <tr>
-    <td width="50%" valign="top"><img src="docs/images/wrist-mount-01-parts.jpg" alt="M5Stack watch accessory kit parts and Vibe Watch"><br><strong>1. Choose the watch mount</strong><br>Use the rectangular Watch Mount Accessory supplied with the official kit.</td>
-    <td width="50%" valign="top"><img src="docs/images/wrist-mount-02-cut-hooks.jpg" alt="Cutting the M5Stick retaining hooks from the watch mount"><br><strong>2. Remove the retaining hooks</strong><br>Cut each raised M5Stick hook carefully with small nippers.</td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top"><img src="docs/images/wrist-mount-03-trim-hooks.jpg" alt="Trimming the remaining plastic hook material"><br><strong>3. Make the surface flat</strong><br>Trim the remaining plastic and remove sharp edges.</td>
-    <td width="50%" valign="top"><img src="docs/images/wrist-mount-04-adhesive.jpg" alt="Modified watch mount attached to the rear of Vibe Watch with strong double-sided tape"><br><strong>4. Bond and test</strong><br>Attach the centered mount with high-strength double-sided tape, then pull-test it before wearing.</td>
-  </tr>
-</table>
-
-The conversion preserves the original StopWatch case and uses only the modified kit part plus adhesive. It makes the interface instantly available while moving around, not only when sitting at a desk.
-
-## Impact and Usefulness
-
-Vibe Watch removes tiny but frequent interruptions from AI-assisted work. It keeps multi-agent activity visible, reduces approval to a confident physical decision, and makes voice interaction instantly available—even away from the keyboard.
-
-The same interaction model can extend beyond coding to accessibility tools, creative applications, multi-agent operations, and other workflows where attention is more valuable than screen space.
-
-## Hardware Used
-
-| Item | Quantity | Role |
-|---|---:|---|
-| [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) | 1 | Controller, display, input, audio, haptics, BLE, and power |
-| [M5Stack Watch Accessory Kit for M5Stick Series](https://shop.m5stack.com/products/watch-accessory-kit-for-m5stick-series) | 1 | Nylon wrist strap and modified Watch Mount Accessory |
-| High-strength double-sided tape | 1 piece | Bonds the modified mount to the StopWatch |
-| macOS computer with Bluetooth | 1 | AI coding host |
-
-Tools for the wrist conversion: flush cutters or small nippers, an optional fine file, and eye protection.
-
-## Build and Pair
-
-Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installation/index.html), then clone and build the public repository:
+Install PlatformIO Core, then run:
 
 ```sh
-git clone https://github.com/GOROman/vibewatch.git
-cd vibewatch
-python3 -m platformio run -e m5stack-stopwatch
+python -m platformio test -e native
+python -m platformio run -e m5stack-sticks3
 ```
 
-Connect the StopWatch and upload:
+On Windows without `gcc/g++`, the native tests need a MinGW compiler on PATH.
+The embedded firmware build does not use that host compiler.
+
+Connect the StickS3 by USB and upload only when you intend to write the device:
 
 ```sh
-python3 -m platformio run -e m5stack-stopwatch --target upload
+python -m platformio run -e m5stack-sticks3 --target upload
 ```
 
-Open Settings on Vibe Watch, select one of the three device slots, tap **PAIR**, and connect to `Vibe Watch #n` from macOS Bluetooth settings.
+The device advertises as `Vibe Watch #1` to preserve the upstream host
+compatibility path. Pair it in the computer's Bluetooth settings, then verify
+that the ChatGPT/Codex desktop app exposes the Codex Micro controls.
+
+## Verification status
+
+- Native decoder/tone/mapper tests: passing
+- StickS3 firmware build: passing
+- Physical StickS3 flash, board autodetection, PSRAM, NimBLE startup, and
+  `morse-v1.0` readiness banner: passing
+- Physical StickS3 display, key sound, microphone, and power: USER_REVIEW
+- macOS and Windows paired-host command matrix: USER_REVIEW
+
+See [.pcba-workflow/architecture.md](.pcba-workflow/architecture.md) for system
+boundaries and outstanding evidence. See
+[docs/flash-verification.md](docs/flash-verification.md) for the sanitized
+physical-write receipt.
 
 ## License
 
-[MIT License](LICENSE)
-
-## References
-
-- [M5Stack StopWatch — official documentation](https://docs.m5stack.com/en/core/StopWatch)
-- [M5Stack Watch Accessory Kit for M5Stick Series — official product page](https://shop.m5stack.com/products/watch-accessory-kit-for-m5stick-series)
-- [OpenAI Codex Micro — official documentation](https://learn.chatgpt.com/docs/features/codex-micro)
+MIT. The upstream copyright and permission notice remain in [LICENSE](LICENSE).
