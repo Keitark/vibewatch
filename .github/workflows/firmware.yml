@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -31,7 +31,7 @@ jobs:
         run: python -m platformio run -e m5stack-sticks3
 
       - name: Publish firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MorseVibe-StickS3-firmware
           path: .pio/build/m5stack-sticks3/firmware.bin
