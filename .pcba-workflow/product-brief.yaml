@@ -1,15 +1,15 @@
 schema: electronic-product-brief-v1
 project_id: morse-vibe-sticks3
 revision: feature/morse-sticks3
-status: USER_REVIEW
+status: BLOCKED
 purpose:
   user_problem: "Operate selected Codex Micro/Vibewatch functions by keying or playing Morse code into a compact M5StickS3."
   success_behavior:
     - "Show the pending Morse pattern, decoded character, mapped command, BLE state, and battery on the 135 x 240 display."
-    - "Decode Button A keying with crisp audible sidetone feedback."
+    - "Decode Button A or a passive Grove-connected straight key with crisp audible sidetone feedback."
     - "Decode coherent audible Morse tones from 600 to 1000 Hz in microphone mode."
     - "Send only explicitly mapped characters through the compatible v.oai.hid BLE vendor report."
-    - "Interpret Button B force-commit as an explicit cut-number request when the pattern has a numeric alias."
+    - "Prefer simplified numbers on automatic commit; interpret Button B force-commit as an explicit alphabet request when the pattern is shared."
   prohibited_behavior:
     - "Do not send unmapped or invalid characters."
     - "Do not queue commands while BLE is disconnected."
@@ -20,10 +20,10 @@ environment:
     - "ASSUMPTION: indoor, dry, handheld prototype use."
   lifetime_target: "Unknown; owner=user; required before productization."
 functions:
-  - "Button straight-key Morse input with adaptive 50 to 300 ms time unit."
+  - "Button A or Grove GPIO10 straight-key Morse input with adaptive 50 to 300 ms time unit."
   - "Microphone Morse input with one-second ambient calibration."
   - "Alphabet and standard numeral display decoding."
-  - "Explicit amateur-radio cut-number alternate decoding."
+  - "Default amateur-radio simplified-number decoding with explicit alphabet alternate decoding."
   - "Vibewatch/Codex Micro BLE command dispatch."
   - "Battery, pairing, status, and host-microphone safety indication."
 operating_states:
@@ -42,6 +42,13 @@ interfaces:
     rate: "human input; edge timing measured in milliseconds"
     topology: "on-board"
     protection: "SPEC: provided by the finished M5StickS3; not modified by this project"
+  - name: "Grove passive straight key"
+    domain: "3.3 V GPIO input using the ESP32-S3 internal approximately 45 kOhm pull-up; Grove red 5 V output disabled"
+    direction: "input"
+    protocol: "normally-open dry contact pulls GPIO10 LOW; 8 ms software debounce"
+    rate: "human input; edge timing measured in milliseconds"
+    topology: "short HY2.0-4P-to-bare-wire cable; white GPIO10 and black GND only"
+    protection: "ASSUMPTION: indoor prototype dry contact; no added long-cable ESD or transient protection"
   - name: "Built-in microphone and ES8311 audio codec"
     domain: "internal digital audio/I2C domains owned by the finished StickS3"
     direction: "input"
@@ -53,7 +60,7 @@ interfaces:
     domain: "internal audio amplifier path"
     direction: "output"
     protocol: "M5Unified PCM/tone output"
-    rate: "880 Hz continuous sidetone while Button A is held"
+    rate: "880 Hz continuous sidetone while Button A or the Grove key is held"
     topology: "on-board"
     protection: "TARGET: volume 115/255; requires acoustic verification"
   - name: "Bluetooth Low Energy"
@@ -75,7 +82,7 @@ power:
     - "SPEC: internal 250 mAh battery"
     - "SPEC: USB Type-C 5 V input"
   rails:
-    - "SPEC: internal StickS3 rails managed by M5PM1; no external rail is added"
+    - "SPEC: internal StickS3 rails managed by M5PM1; Grove 5 V output is explicitly disabled"
   budget_by_mode:
     - "TBD_MEASURE: KEY idle, keying with speaker, MIC listening, BLE connected, and charging current."
 mechanics:
@@ -84,6 +91,7 @@ mechanics:
     - "USB Type-C"
     - "Button A"
     - "Button B"
+    - "HY2.0-4P Grove cable with passive normally-open straight key"
     - "power/reset control"
     - "built-in display, microphone, and speaker"
   keepouts:
@@ -98,6 +106,15 @@ verification:
   - "PASS: PlatformIO m5stack-sticks3 firmware build."
   - "PASS: physical COM3 target identified as ESP32-S3-PICO-1 with 8 MB flash/PSRAM, flashed with verified write hashes, and booted as board_M5StickS3."
   - "PASS: post-flash serial banner reported morse-v1.0, KEY readiness, and NimBLE host synchronization."
+  - "PASS: morse-v1.1 native tests cover 8 ms Grove contact debounce and Button A/Grove merged-edge behavior."
+  - "PASS: morse-v1.1 PlatformIO StickS3 firmware build."
+  - "USER_REVIEW: verify GPIO9-to-GND key continuity, contact behavior, display source status, and sidetone on the flashed morse-v1.1 device."
+  - "PASS: morse-v1.1 was flashed to COM3 with esptool verification; Windows reports the ESP32-S3 USB interfaces and Vibe Watch #1 BLE HID device present."
+  - "PASS: morse-v1.2 native tests cover simplified-number default commits, explicit alphabet commits, and conflict-free C/X command mappings; 12/12 pass."
+  - "PASS: morse-v1.2 PlatformIO StickS3 firmware build."
+  - "USER_REVIEW: flash morse-v1.2 and verify GPIO10-to-GND key input, automatic .- sends Agent 1, and Button B commits alphabet A without transmission."
+  - "USER_REPORTED_PASS: macOS recognized the morse-v1.1 device as Codex Micro and Fast command F operated."
+  - "BLOCKED: ChatGPT desktop 26.805.11740 does not expose a Codex Micro settings section for Vibe Watch #1; a settings search returned only the unrelated Switch to Codex shortcut."
   - "USER_REVIEW: visually and acoustically operate the physical StickS3 controls and display."
   - "USER_REVIEW: measure sidetone latency, acoustic clarity, microphone threshold, and power by mode."
   - "USER_REVIEW: pair and exercise every command on macOS and Windows ChatGPT/Codex."
@@ -114,12 +131,19 @@ unknowns:
     owner: "user/bench"
     affected_stage: "productization"
     evidence_needed: "current and runtime measurements in KEY and MIC modes"
+  - item: "Physical Grove key cable, contact bounce, and noise margin"
+    owner: "user/bench"
+    affected_stage: "prototype acceptance"
+    evidence_needed: "continuity check plus repeated short/dash entry on the actual key; inspect for false edges with the intended cable length"
 assumptions:
   - "The upstream Vibewatch VID, PID, descriptor, device name, and report framing remain acceptable to the supported host integration."
   - "Audible microphone input is a coherent beeper tone, not spoken dit/dah syllables."
-  - "Automatic commit selects letters; Button B force-commit explicitly selects a cut-number alias."
+  - "Automatic commit selects simplified numbers; Button B force-commit explicitly selects the alphabet alternate."
+  - "The purchased key is a passive normally-open two-terminal straight key; powered keyers and paddle/iambic decoding are outside this revision."
 sources:
   - "https://github.com/GOROman/vibewatch at f2520875a61fe087cb7e5b63a2a61ddcc2e79cb2"
   - "https://docs.m5stack.com/en/core/StickS3"
+  - "https://docs.m5stack.com/en/learn/interface/grove"
+  - "https://docs.espressif.com/projects/arduino-esp32/en/latest/api/gpio.html"
   - "https://docs.m5stack.com/en/arduino/m5sticks3/mic"
   - "https://learn.chatgpt.com/docs/features/codex-micro"

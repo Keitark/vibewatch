@@ -22,6 +22,12 @@ constexpr std::array<MorseEntry, 36> kAlphabet = {{
     {"--...", '7'}, {"---..", '8'}, {"----.", '9'},
 }};
 
+constexpr std::array<MorseEntry, 10> kCutNumbers = {{
+    {"-", '0'}, {".-", '1'}, {"..-", '2'}, {"...-", '3'},
+    {"....-", '4'}, {".", '5'}, {"-....", '6'}, {"-...", '7'},
+    {"-..", '8'}, {"-.", '9'},
+}};
+
 template <typename T>
 T clampValue(T value, T minimum, T maximum) {
     return std::max(minimum, std::min(value, maximum));
@@ -113,13 +119,7 @@ char Decoder::decodePattern(const std::string& pattern) {
 
 char Decoder::decodeCutNumber(const std::string& pattern) {
     // Amateur-radio cut numbers shorten common numerals by reusing letter
-    // patterns. The caller chooses this interpretation explicitly so an A or
-    // N command never changes meaning merely because of timing jitter.
-    static constexpr MorseEntry kCutNumbers[] = {
-        {"-", '0'}, {".-", '1'}, {"..-", '2'}, {"...-", '3'},
-        {"....-", '4'}, {".", '5'}, {"-....", '6'}, {"-...", '7'},
-        {"-..", '8'}, {"-.", '9'},
-    };
+    // patterns. Simplified-number mode prefers this compact interpretation.
     for (const auto& entry : kCutNumbers) {
         if (pattern == entry.pattern) {
             return entry.character;
@@ -128,10 +128,56 @@ char Decoder::decodeCutNumber(const std::string& pattern) {
     return '\0';
 }
 
+std::string Decoder::encodePattern(char character, DecodeMode mode) {
+    if (mode == DecodeMode::SimplifiedNumbers) {
+        for (const auto& entry : kCutNumbers) {
+            if (character == entry.character) {
+                return entry.pattern;
+            }
+        }
+    }
+    for (const auto& entry : kAlphabet) {
+        if (character == entry.character) {
+            return entry.pattern;
+        }
+    }
+    return {};
+}
+
+char Decoder::decodeForMode(const std::string& pattern) const {
+    const char alphabetCharacter = decodePattern(pattern);
+    if (alphabetCharacter == '\0') {
+        return '\0';
+    }
+    if (mode_ == DecodeMode::SimplifiedNumbers) {
+        const char cutNumber = decodeCutNumber(pattern);
+        if (cutNumber != '\0') {
+            return cutNumber;
+        }
+    }
+    return alphabetCharacter;
+}
+
+char Decoder::decodePending() const {
+    return decodeForMode(pattern_);
+}
+
+std::string Decoder::previewPattern(std::uint32_t nowMs) const {
+    std::string preview = pattern_;
+    if (keyIsDown_ && nowMs - keyDownAtMs_ >= unitMs_ * 2U) {
+        preview += '-';
+    }
+    return preview;
+}
+
+char Decoder::decodePreview(std::uint32_t nowMs) const {
+    return decodeForMode(previewPattern(nowMs));
+}
+
 DecodeEvent Decoder::commit(bool forced) {
     const std::string completed = pattern_;
     pattern_.clear();
-    const char decoded = decodePattern(completed);
+    const char decoded = decodeForMode(completed);
     if (decoded == '\0') {
         return {EventType::Invalid, '\0', completed, forced};
     }
