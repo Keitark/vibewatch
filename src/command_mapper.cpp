@@ -6,9 +6,9 @@ CommandMapping mapCommand(char character) {
     switch (character) {
         case 'F': return {CommandType::Action, "ACT06", "FAST"};
         case 'O': return {CommandType::Action, "ACT07", "OK"};
-        case 'N': return {CommandType::Action, "ACT08", "NG"};
+        case 'X': return {CommandType::Action, "ACT08", "NG"};
         case 'P': return {CommandType::Action, "ACT09", "PLAN"};
-        case 'A': return {CommandType::Action, "ACT12", "AI"};
+        case 'C': return {CommandType::Action, "ACT12", "CODEX"};
         case 'M': return {CommandType::MicrophoneToggle, nullptr, "HOST MIC"};
         case '1': return {CommandType::Agent, "AG00", "AGENT 1"};
         case '2': return {CommandType::Agent, "AG01", "AGENT 2"};

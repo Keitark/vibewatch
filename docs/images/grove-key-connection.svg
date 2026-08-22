@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">M5StickS3 Grove straight-key connection</title>
+  <desc id="desc">Connect only Grove white GPIO10 and black ground to the two terminals of a passive normally-open Morse straight key. Leave red 5 volts and yellow GPIO9 disconnected and insulated.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0b1016; }
+      .panel { fill: #16212c; stroke: #4bd4ed; stroke-width: 3; }
+      .key { fill: #202b35; stroke: #ffb13b; stroke-width: 3; }
+      .title { fill: #ffffff; font: 700 28px Arial, sans-serif; }
+      .label { fill: #ffffff; font: 700 21px Arial, sans-serif; }
+      .small { fill: #bdc8d2; font: 17px Arial, sans-serif; }
+      .warning { fill: #ffcb66; font: 700 18px Arial, sans-serif; }
+      .wire { fill: none; stroke-width: 12; stroke-linecap: round; }
+      .unused { stroke-dasharray: 12 10; opacity: 0.65; }
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="520" rx="24"/>
+  <text class="title" x="480" y="48" text-anchor="middle">M5StickS3 Grove → Morse Straight Key / 電鍵</text>
+
+  <rect class="panel" x="55" y="90" width="340" height="350" rx="24"/>
+  <text class="label" x="225" y="130" text-anchor="middle">M5StickS3 HY2.0-4P</text>
+  <text class="small" x="225" y="158" text-anchor="middle">Grove cable wire colors</text>
+
+  <circle cx="118" cy="215" r="13" fill="#161616" stroke="#ffffff" stroke-width="2"/>
+  <text class="label" x="150" y="223">BLACK — GND</text>
+  <circle cx="118" cy="275" r="13" fill="#f04444"/>
+  <text class="label" x="150" y="283">RED — 5 V</text>
+  <circle cx="118" cy="335" r="13" fill="#ffd228"/>
+  <text class="label" x="150" y="343">YELLOW — GPIO9</text>
+  <circle cx="118" cy="395" r="13" fill="#ffffff" stroke="#9aa7b2" stroke-width="2"/>
+  <text class="label" x="150" y="403">WHITE — GPIO10</text>
+
+  <rect class="key" x="650" y="135" width="250" height="260" rx="30"/>
+  <text class="label" x="775" y="177" text-anchor="middle">Passive N.O. key</text>
+  <text class="small" x="775" y="207" text-anchor="middle">無電圧・通常開接点</text>
+  <circle cx="685" cy="255" r="15" fill="#ffb13b"/>
+  <circle cx="685" cy="335" r="15" fill="#ffb13b"/>
+  <line x1="700" y1="335" x2="812" y2="273" stroke="#dce6ed" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="830" cy="255" r="15" fill="#dce6ed"/>
+  <text class="small" x="775" y="374" text-anchor="middle">No polarity / 極性なし</text>
+
+  <path class="wire" stroke="#dce6ed" stroke-width="18" d="M395 215 C500 215, 540 255, 670 255"/>
+  <path class="wire" stroke="#191919" d="M395 215 C500 215, 540 255, 670 255"/>
+  <path class="wire unused" stroke="#ffd228" d="M395 335 H535"/>
+  <line x1="545" y1="318" x2="575" y2="352" stroke="#ffd228" stroke-width="8"/>
+  <line x1="575" y1="318" x2="545" y2="352" stroke="#ffd228" stroke-width="8"/>
+  <path class="wire unused" stroke="#f04444" d="M395 275 H535"/>
+  <line x1="545" y1="258" x2="575" y2="292" stroke="#f04444" stroke-width="8"/>
+  <line x1="575" y1="258" x2="545" y2="292" stroke="#f04444" stroke-width="8"/>
+  <path class="wire" stroke="#ffffff" d="M395 395 C500 395, 545 335, 670 335"/>
+
+  <text class="warning" x="480" y="478" text-anchor="middle">Connect BLACK + WHITE only. Insulate RED and YELLOW separately.</text>
+  <text class="small" x="480" y="505" text-anchor="middle">赤(5 V)と黄(GPIO9)は接続しないで個別に絶縁</text>
+</svg>

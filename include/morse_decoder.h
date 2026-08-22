@@ -12,6 +12,11 @@ enum class EventType {
     WordGap,
 };
 
+enum class DecodeMode {
+    SimplifiedNumbers,
+    NormalAlphabet,
+};
+
 struct DecodeEvent {
     EventType type = EventType::None;
     char character = '\0';
@@ -37,16 +42,23 @@ public:
     DecodeEvent update(std::uint32_t nowMs);
     DecodeEvent forceCommit(std::uint32_t nowMs);
     void clear();
+    void setMode(DecodeMode mode) { mode_ = mode; }
+    char decodePending() const;
+    std::string previewPattern(std::uint32_t nowMs) const;
+    char decodePreview(std::uint32_t nowMs) const;
 
     bool isKeyDown() const { return keyIsDown_; }
     const std::string& pattern() const { return pattern_; }
     std::uint32_t unitMs() const { return unitMs_; }
+    DecodeMode mode() const { return mode_; }
 
     static char decodePattern(const std::string& pattern);
     static char decodeCutNumber(const std::string& pattern);
+    static std::string encodePattern(char character, DecodeMode mode);
 
 private:
     DecodeEvent commit(bool forced);
+    char decodeForMode(const std::string& pattern) const;
     void adaptUnit(std::uint32_t sampleMs);
 
     DecoderConfig config_;
@@ -57,6 +69,7 @@ private:
     bool keyIsDown_ = false;
     bool haveRelease_ = false;
     bool wordGapEmitted_ = true;
+    DecodeMode mode_ = DecodeMode::SimplifiedNumbers;
 };
 
 }  // namespace morse

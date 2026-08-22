@@ -5,12 +5,14 @@
 
 namespace vibe {
 
-// Keep the proven Codex Micro-compatible identity while the on-device display
-// and firmware version clearly identify this derivative as Morse Vibe.
+// Keep the upstream host-facing identity and compatibility version unchanged.
+// The separate local version identifies this derivative in diagnostics without
+// changing the value returned through BLE Device Information and JSON-RPC.
 constexpr char kDeviceName[] = "Vibe Watch #1";
 constexpr char kManufacturer[] = "VibeWatch";
 constexpr char kModelNumber[] = "VibeWatch";
-constexpr char kFirmwareVersion[] = "morse-v1.0";
+constexpr char kFirmwareVersion[] = "v1.0";
+constexpr char kLocalFirmwareVersion[] = "morse-v1.5.1";
 
 constexpr std::uint16_t kVendorId = 0x303A;
 constexpr std::uint16_t kProductId = 0x8360;
